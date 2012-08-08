@@ -1,5 +1,5 @@
-class MoviesController < ApplicationController
-
+class MoviesController < ApplicationController  
+  attr_accessor :hilite_headers 
   def show
     id = params[:id] # retrieve movie ID from URI route
     @movie = Movie.find(id) # look up movie by unique ID
@@ -7,8 +7,11 @@ class MoviesController < ApplicationController
   end
 
   def index
+    @hilite_headers = {"title" => :common, "release_date" => :common}
     if params.has_key?(:sort_by)
-      @movies = Movie.find(:all, :order => params[:sort_by])
+      header = params[:sort_by]
+      @hilite_headers[header] = :hilite
+      @movies = Movie.find(:all, :order => header)
     else
       @movies = Movie.all
     end
@@ -40,6 +43,5 @@ class MoviesController < ApplicationController
     @movie.destroy
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
-  end
-
+  end 
 end
