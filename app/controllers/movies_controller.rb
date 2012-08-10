@@ -68,7 +68,9 @@ class MoviesController < ApplicationController
     
     def checkboxes_checked?
       checked = false
+      if flash[:ratings] != nil
       flash[:ratings].each_value{|x| if x == true then checked = true end}
+      end
       checked
     end
     
