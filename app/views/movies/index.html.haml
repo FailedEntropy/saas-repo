@@ -4,13 +4,13 @@
   Include:
   - @all_ratings.each do |rating|
     = rating
-    = check_box_tag("ratings[#{rating}]", 1, @checked_checkboxes["#{rating}"])
+    = check_box_tag("ratings[#{rating}]", 1, flash[:ratings]["#{rating}"])
   = submit_tag 'Refresh', :id => :ratings_submit
 
 %table#movies
   %thead
     %tr
-      %th{:class => @hilite_headers["title"]}= link_to "Movie Title", movies_path({:sort_by => "title", :commit => "refresh"}), :id => "title_header"
+      %th{:class => @hilite_headers["title"]}= link_to "Movie Title", movies_path({:sort_by => "title"}), :id => "title_header"
       %th.common Rating
       %th{:class => @hilite_headers["release_date"]}= link_to "Release Date", movies_path({:sort_by => "release_date"}), :id => "release_date_header"
       %th.common More Info

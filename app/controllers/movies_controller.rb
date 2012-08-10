@@ -7,19 +7,27 @@ class MoviesController < ApplicationController
     @movie = Movie.find(id) # look up movie by unique ID
     # will render app/views/movies/show.<extension> by default
   end
-
+  
   def index
     @hilite_headers = {"title" => :common, "release_date" => :common}
     params.has_key?(:ratings) ? rates = params[:ratings].keys : rates = "*"
-    if rates.class == Array then rates.each {|x| @checked_checkboxes[x] = true} end
-
+ 
+    if rates.class == Array
+      rates.each {|x| @checked_checkboxes[x] = true}
+      flash[:ratings] = @checked_checkboxes
+    elsif checkboxes_checked?
+      flash[:ratings] = flash[:ratings]
+    else
+      flash[:ratings] = @checked_checkboxes 
+    end
+    
     if params.has_key?(:sort_by)
       header = params[:sort_by]
       @hilite_headers[header] = :hilite
       session[:sorted_by] = header
-      @movies = Movie.find(:all, :order => header, :conditions => {:rating => rates})
+      @movies = Movie.find(:all, :order => header, :conditions => {:rating => get_checked_checkboxes})
     else
-      @movies = Movie.find(:all, :conditions => {:rating => rates})
+      @movies = Movie.find(:all, :conditions => {:rating => get_checked_checkboxes})
     end
   end
 
@@ -56,5 +64,17 @@ class MoviesController < ApplicationController
       @all_ratings = Movie.select(:rating).map(&:rating).uniq
       @checked_checkboxes = Hash.new
       @all_ratings.each {|x| @checked_checkboxes[x] = false}
+    end
+    
+    def checkboxes_checked?
+      checked = false
+      flash[:ratings].each_value{|x| if x == true then checked = true end}
+      checked
+    end
+    
+    def get_checked_checkboxes
+      checked_array = Array.new
+      flash[:ratings].each{|key, val| if val == true then checked_array.push(key) end}
+      checked_array.empty? ? "*" : checked_array
     end  
 end
