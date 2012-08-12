@@ -9,26 +9,18 @@ class MoviesController < ApplicationController
   end
   
   def index
-    @hilite_headers = {"title" => :common, "release_date" => :common}
-    params.has_key?(:ratings) ? rates = params[:ratings].keys : rates = "*"
- 
-    if rates.class == Array
-      rates.each {|x| @checked_checkboxes[x] = true}
-      flash[:ratings] = @checked_checkboxes
-    elsif checkboxes_checked?
-      flash[:ratings] = flash[:ratings]
-    else
-      flash[:ratings] = @checked_checkboxes 
-    end
+    @headers_class = {"title" => :common, "release_date" => :common}
+    @sort_by_header = params[:sort_by]
+    params.has_key?(:ratings) ? @filter_by = params[:ratings].each_value do |x| x = true end : @filter_by = Hash.new
     
-    if params.has_key?(:sort_by)
-      header = params[:sort_by]
-      @hilite_headers[header] = :hilite
-      session[:sorted_by] = header
-      @movies = Movie.find(:all, :order => header, :conditions => {:rating => get_checked_checkboxes})
-    else
-      @movies = Movie.find(:all, :conditions => {:rating => get_checked_checkboxes})
-    end
+    if @sort_by_header != nil then session[:sort_by_header] = @sort_by_header
+    else @sort_by_header = session[:sort_by_header] end
+    
+    if @filter_by.empty?  then if session[:filter_by] != nil then @filter_by = session[:filter_by] end
+    else session[:filter_by] = @filter_by end
+  
+    @headers_class[@sort_by_header] = :hilite
+    @movies = Movie.find(:all, :order => @sort_by_header, :conditions => {:rating => @filter_by.keys})
   end
 
   def new
@@ -62,21 +54,5 @@ class MoviesController < ApplicationController
   private
     def collect_ratings
       @all_ratings = Movie.select(:rating).map(&:rating).uniq
-      @checked_checkboxes = Hash.new
-      @all_ratings.each {|x| @checked_checkboxes[x] = false}
-    end
-    
-    def checkboxes_checked?
-      checked = false
-      if flash[:ratings] != nil
-      flash[:ratings].each_value{|x| if x == true then checked = true end}
-      end
-      checked
-    end
-    
-    def get_checked_checkboxes
-      checked_array = Array.new
-      flash[:ratings].each{|key, val| if val == true then checked_array.push(key) end}
-      checked_array.empty? ? "*" : checked_array
     end  
 end
